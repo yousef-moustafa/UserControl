@@ -25,6 +25,7 @@ func main() {
 	router.GET("/users", getUsers)
 	router.GET("/users/:id", getUserByID)
 	router.POST("/users", postUser)
+	router.DELETE("/users/:id", deleteUser)
     router.Run("localhost:8080")
 
 	db, err := database.ConnectDB()
@@ -61,3 +62,25 @@ func postUser(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newUser)
 }
 
+func deleteUser(c *gin.Context) {
+	id := c.Param("id")
+
+	// New slice to exclude deleted user
+	var newUsers []user
+	userFound := false
+
+	for _, a := range users {
+		if a.ID != id {
+			newUsers = append(newUsers, a)
+		} else {
+			userFound = true
+		}
+	}
+	users = newUsers
+	if userFound {
+		c.IndentedJSON(http.StatusOK, gin.H{"message": "user deleted successfully"})
+	} else {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
+	}
+
+}
