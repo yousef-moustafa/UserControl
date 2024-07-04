@@ -21,9 +21,11 @@ var users = []user{
 }
 
 func main() {
-	// router := gin.Default()
-    // router.GET("/albums", getUsers)
-    // router.Run("localhost:8080")
+	router := gin.Default()
+	router.GET("/users", getUsers)
+	router.GET("/users/:id", getUserByID)
+	router.POST("/users", postUser)
+    router.Run("localhost:8080")
 
 	db, err := database.ConnectDB()
 	if err != nil {
@@ -37,3 +39,25 @@ func getUsers(c *gin.Context) {
 	// Serialize the Go Struct into pretty JSON
 	c.IndentedJSON(http.StatusOK, users)
 }
+
+func getUserByID(c *gin.Context) {
+	id := c.Param("id")
+	// Loop over users slice looking for a user with id parameter value given in context
+	for _, a := range users {
+		if a.ID == id {
+			c.IndentedJSON(http.StatusOK, a)
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "user not found"})
+}
+
+func postUser(c *gin.Context) {
+	var newUser user
+	if err := c.BindJSON(&newUser); err != nil {
+		return
+	}
+	users = append(users, newUser)
+	c.IndentedJSON(http.StatusCreated, newUser)
+}
+
